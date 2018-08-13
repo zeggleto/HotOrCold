@@ -64,12 +64,12 @@ Builder.load_string('''
     AnchorLayout:
         anchor_x: 'center'
         anchor_y: 'top'
-        pos: 0, -20
+        pos: 0, 0
         Label: 
             id: updating
-            size: 0, -100
+            size: 0, 50
             size_hint: None, None
-            text: 'Updating...'
+            text: ''
             
     AnchorLayout:
         anchor_x: 'left'
@@ -97,6 +97,7 @@ Builder.load_string('''
         anchor_y: 'center'
         pos: 50, 80
         Label:
+            id: local_heatchill
             size: 52, 120
             size_hint: None, None
             text: 'Heat'
@@ -131,6 +132,7 @@ Builder.load_string('''
         anchor_y: 'center'
         pos: -50, 80
         Label:
+            id: compare_heatchill
             size: 212, 120
             size_hint: None, None
             text: 'Heat'
@@ -163,11 +165,11 @@ class Interface(FloatLayout):
         self.hot = True
 
     def update_interface(self):
-        self.ids.updating.size = (0, 0)
+        self.ids.updating.text = 'Updating...'
         Data.update_weather()
         self.get_local()
         self.get_temp(self.hot)
-        self.ids.updating.size = (0, -100)
+        self.ids.updating.text = ''
 
     def get_local(self):
         local = Data.get_city('local')
@@ -179,23 +181,24 @@ class Interface(FloatLayout):
     def get_temp(self, hot):
         if hot is True:
             compare = Data.get_city('hightemp')
-            self.ids.compare_temp.text = str(int(compare['main']['temp']))
-            self.ids.compare_name.text = compare['name'] + ", " + compare['state']
-            self.ids.compare_humid.text = str(compare['main']['humidity'])
             self.ids.compare_heat.text = str(int(compare['main']['heat']))
         else:
             compare = Data.get_city('lowtemp')
-            self.ids.compare_temp.text = str(int(compare['main']['temp']))
-            self.ids.compare_name.text = compare['name'] + ", " + compare['state']
-            self.ids.compare_humid.text = str(compare['main']['humidity'])
-            self.ids.compare_heat.text = str(int(compare['main']['heat']))
+            self.ids.compare_heat.text = str(int(compare['main']['chill']))
+        self.ids.compare_temp.text = str(int(compare['main']['temp']))
+        self.ids.compare_name.text = compare['name'] + ", " + compare['state']
+        self.ids.compare_humid.text = str(compare['main']['humidity'])
 
     def switch_temp(self):
         self.get_temp(not self.hot)
         if self.hot is True:
             self.ids.hot_cold.text = "Cold"
+            self.ids.local_heatchill.text = "Chill"
+            self.ids.compare_heatchill.text = "Chill"
         else:
             self.ids.hot_cold.text = "Hot"
+            self.ids.local_heatchill.text = "Heat"
+            self.ids.compare_heatchill.text = "Heat"
         self.hot = not self.hot
 
 
@@ -210,7 +213,7 @@ class WeatherCompared(App):
 
     def on_start(self, **kwargs):
         self.root.update_interface()
-        Clock.schedule_interval(lambda dt: self.root.update_interface(), 660)
+        Clock.schedule_interval(lambda dt: self.root.update_interface(), 60)
 
     def _update_rect(self, instance, value):
         self.rect.size = instance.size
